@@ -15,9 +15,9 @@
 3. از زبانهٔ **Actions**، ورک‌فلو **Update VLESS subscription** را یک‌بار با **Run workflow** اجرا کنید. پس از اجرای موفق، `vless.txt` در ریشهٔ شاخهٔ اصلی ساخته یا به‌روزرسانی می‌شود؛ سپس زمان‌بندی هر ساعت آن را تازه می‌کند.
 4. لینک سابسکریپشن، پس از عمومی‌شدن مخزن، این است:
 
-   `https://raw.githubusercontent.com/OWNER/REPOSITORY/main/vless.txt`
+   `https://raw.githubusercontent.com/aishervin/xray/main/vless.txt`
 
-   به‌جای `OWNER/REPOSITORY` نام حساب و مخزن GitHub خودتان را بگذارید.
+   این لینک فایل `vless.txt` در مخزن `aishervin/xray` را می‌خواند.
 
 ## افزودن یا حذف منبع
 
