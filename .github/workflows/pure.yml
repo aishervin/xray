@@ -1,0 +1,82 @@
+name: Rank healthy VLESS nodes
+
+on:
+  workflow_run:
+    workflows: ["Update VLESS subscription"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pure-vless-ranking
+  cancel-in-progress: false
+
+jobs:
+  rank:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download Xray core
+        run: |
+          mkdir -p "${RUNNER_TEMP}/xray"
+          curl -fsSL --retry 3 \
+            https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip \
+            -o "${RUNNER_TEMP}/xray/xray.zip"
+          unzip -q "${RUNNER_TEMP}/xray/xray.zip" xray -d "${RUNNER_TEMP}/xray"
+          chmod +x "${RUNNER_TEMP}/xray/xray"
+          "${RUNNER_TEMP}/xray/xray" version
+
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Test, measure, and rank VLESS nodes
+        run: python pure_checker.py
+        env:
+          VLESS_SOURCE_URL: https://raw.githubusercontent.com/aishervin/xray/refs/heads/main/vless.txt
+          XRAY_BIN: ${{ runner.temp }}/xray/xray
+          PURE_WORKERS: "64"
+          MAX_CONFIGS: "50000"
+          SPEED_CANDIDATES: "3000"
+          TOP_N: "2000"
+          PROXY_TIMEOUT: "3"
+          SPEED_TIMEOUT: "8"
+
+      - name: Commit ranked pure subscription
+        run: |
+          if git diff --quiet -- pure.txt; then
+            echo "No pure.txt changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pure.txt
+          git commit -m "Update ranked pure VLESS subscription"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "Rebase conflict; leaving remote pure.txt unchanged."
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Remote changed during push; retrying ($attempt/5)."
+            sleep "$((attempt * 2))"
+          done
+          echo "Could not push pure.txt after five retries."
+          exit 1
