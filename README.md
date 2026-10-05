@@ -6,7 +6,7 @@
 
 # گردآورندهٔ ساعتی VLESS
 
-این مخزن هر ساعت فهرست کانفیگ‌های عمومی VLESS را از ۱۰ خوراک خام دریافت می‌کند، VLESSهای پشتیبانی‌شده را جدا می‌کند، موارد تکراری را کنار می‌گذارد، فقط اتصال TCP به آدرس‌های عمومی را می‌آزماید و کانفیگ‌های پاسخ‌گو را در `vless.txt` می‌نویسد. نام نمایشی تمام خروجی‌ها `T.me/aShervin` است.
+این مخزن هر ساعت فهرست کانفیگ‌های عمومی VLESS را از ۲۴ خوراک خام دریافت می‌کند، VLESSهای پشتیبانی‌شده را جدا می‌کند، موارد تکراری را کنار می‌گذارد، فقط اتصال TCP به آدرس‌های عمومی را می‌آزماید و کانفیگ‌های پاسخ‌گو را در `vless.txt` می‌نویسد. نام نمایشی تمام خروجی‌ها `T.me/aShervin` است.
 
 ## راه‌اندازی در GitHub
 
@@ -38,7 +38,26 @@
 | [MahanKenway/Freedom-V2Ray](https://github.com/MahanKenway/Freedom-V2Ray) | 113 | [VLESS](https://raw.githubusercontent.com/MahanKenway/Freedom-V2Ray/main/configs/vless.txt) |
 | [rtwo2/FastNodes](https://github.com/rtwo2/FastNodes) | 94 | [VLESS](https://raw.githubusercontent.com/rtwo2/FastNodes/main/sub/protocols/vless.txt) |
 
-همهٔ این ده فایل خام هنگام آماده‌سازی با کد HTTP `200` پاسخ دادند؛ این فقط در دسترس‌بودن لحظه‌ای فایل را تأیید می‌کند، نه کیفیت، مجوز، امنیت یا ماندگاری سرورها. برخی خوراک‌ها فهرست ترکیبی یا Base64 هستند و اسکریپت VLESS را از آن‌ها استخراج می‌کند.
+خوراک‌های تکمیلی که در این نوبت بررسی و اضافه شدند:
+
+| مخزن | خوراک |
+|---|---|
+| [aishervin/V2flair](https://github.com/aishervin/V2flair) | [clean_sub.txt](https://raw.githubusercontent.com/aishervin/V2flair/refs/heads/main/clean_sub.txt) |
+| [aishervin/subfine](https://github.com/aishervin/subfine) | [sub.txt](https://raw.githubusercontent.com/aishervin/subfine/refs/heads/main/sub.txt) |
+| [aishervin/v2ray](https://github.com/aishervin/v2ray) | [Sub.json](https://raw.githubusercontent.com/aishervin/v2ray/refs/heads/main/Sub.json) |
+| [0xRadikal/Free-v2ray-Configs](https://github.com/0xRadikal/Free-v2ray-Configs) | [all/configs.txt](https://raw.githubusercontent.com/0xRadikal/Free-v2ray-Configs/refs/heads/main/all/configs.txt) |
+| [iboxz/free-v2ray-collector](https://github.com/iboxz/free-v2ray-collector) | [vless.txt](https://raw.githubusercontent.com/iboxz/free-v2ray-collector/main/main/vless.txt) |
+| [igareck/vpn-configs-for-russia](https://github.com/igareck/vpn-configs-for-russia) | [Vless-Reality-White-Lists-Rus-Mobile.txt](https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/Vless-Reality-White-Lists-Rus-Mobile.txt) |
+| [F0rc3Run/F0rc3Run](https://github.com/F0rc3Run/F0rc3Run) | [VLESS](https://raw.githubusercontent.com/F0rc3Run/F0rc3Run/refs/heads/main/splitted-by-protocol/vless.txt) |
+| [barry-far/V2ray-Config](https://github.com/barry-far/V2ray-Config) | [Sub1.txt](https://raw.githubusercontent.com/barry-far/V2ray-config/refs/heads/main/Sub1.txt) |
+| [ebrasha/free-v2ray-public-list](https://github.com/ebrasha/free-v2ray-public-list) | [V2Ray-Config-By-EbraSha.txt](https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/refs/heads/main/V2Ray-Config-By-EbraSha.txt) |
+| [ALIILAPRO/v2rayNG-Config](https://github.com/ALIILAPRO/v2rayNG-Config) | [sub.txt](https://raw.githubusercontent.com/ALIILAPRO/v2rayNG-Config/refs/heads/main/sub.txt) |
+| [MatinGhanbari/v2ray-configs](https://github.com/MatinGhanbari/v2ray-configs) | [all_sub.txt](https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/all_sub.txt) |
+| [Epodonios/v2ray-configs](https://github.com/Epodonios/v2ray-configs) | [All_Configs_Sub.txt](https://raw.githubusercontent.com/Epodonios/v2ray-configs/refs/heads/main/All_Configs_Sub.txt) |
+| [Farid-Karimi/Config-Collector](https://github.com/Farid-Karimi/Config-Collector) | [vless_iran.txt](https://raw.githubusercontent.com/Farid-Karimi/Config-Collector/main/vless_iran.txt) |
+| [MohammadBahemmat/V2ray-Collector](https://github.com/MohammadBahemmat/V2ray-Collector) | [servers/vless_servers.txt](https://raw.githubusercontent.com/MohammadBahemmat/V2ray-Collector/main/servers/vless_servers.txt) |
+
+هر ۱۴ خوراک تکمیلی هنگام بررسی با کد HTTP `200` پاسخ دادند و در محتوای مستقیم یا Base64 آن‌ها VLESS پیدا شد. تعدادی از نشانی‌های ارسالی 404 بودند یا فقط VMess/Hysteria2 داشتند؛ برای اینکه منبع بی‌استفاده و خطای زمان‌بندی اضافه نشود، وارد فهرست VLESS نشدند. وضعیت و دسترس‌پذیری منابع ممکن است تغییر کند. برخی خوراک‌ها ترکیبی یا Base64 هستند و اسکریپت VLESS را از آن‌ها استخراج می‌کند.
 
 ## فیلترها و بررسی اتصال
 
