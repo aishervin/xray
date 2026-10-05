@@ -34,6 +34,9 @@ SUPPORTED_NETWORKS = {"tcp", "ws", "grpc", "http", "httpupgrade", "xhttp"}
 SUPPORTED_SECURITY = {"none", "tls", "reality"}
 DOWNLOAD_BYTES = 128 * 1024
 MAX_SOURCE_BYTES = 64 * 1024 * 1024
+_HEALTH_REQUEST_POOL = concurrent.futures.ThreadPoolExecutor(
+    max_workers=max(1, int(os.getenv("HEALTH_REQUEST_WORKERS", "192")))
+)
 
 
 def _value(query: dict[str, list[str]], *keys: str, default: str = "") -> str:
@@ -345,13 +348,18 @@ def health_probe(xray_bin: str, uri: str) -> dict[str, Any]:
     latencies: list[float] = []
 
     def check(proxy_port: int) -> None:
-        for url in HEALTH_URLS:
+        requests = [
+            _HEALTH_REQUEST_POOL.submit(
+                https_get_via_xray,
+                proxy_port,
+                url,
+                float(os.getenv("PROXY_TIMEOUT", "5")),
+            )
+            for url in HEALTH_URLS
+        ]
+        for request in concurrent.futures.as_completed(requests):
             try:
-                latency, _ = https_get_via_xray(
-                    proxy_port,
-                    url,
-                    float(os.getenv("PROXY_TIMEOUT", "5")),
-                )
+                latency, _ = request.result()
                 latencies.append(latency)
             except (OSError, TimeoutError, ssl.SSLError, http.client.HTTPException, ValueError):
                 continue

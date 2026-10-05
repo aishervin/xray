@@ -49,6 +49,7 @@ jobs:
           VLESS_SOURCE_URL: https://raw.githubusercontent.com/aishervin/xray/refs/heads/main/vless.txt
           XRAY_BIN: ${{ runner.temp }}/xray/xray
           PURE_WORKERS: "64"
+          HEALTH_REQUEST_WORKERS: "192"
           MAX_CONFIGS: "50000"
           SPEED_CANDIDATES: "3000"
           TOP_N: "2000"
@@ -57,13 +58,13 @@ jobs:
 
       - name: Commit ranked pure subscription
         run: |
-          if git diff --quiet -- pure.txt; then
+          git add pure.txt
+          if git diff --cached --quiet -- pure.txt; then
             echo "No pure.txt changes to commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pure.txt
           git commit -m "Update ranked pure VLESS subscription"
           for attempt in 1 2 3 4 5; do
             git fetch origin main

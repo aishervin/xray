@@ -1,8 +1,10 @@
+import threading
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from pure_checker import outbound_from_uri, rank_configs, rank_score, write_output
+from pure_checker import HEALTH_URLS, health_probe, outbound_from_uri, rank_configs, rank_score, write_output
 
 
 class PureCheckerTests(unittest.TestCase):
@@ -46,6 +48,24 @@ class PureCheckerTests(unittest.TestCase):
         fast = {"health_successes": 3, "health_total": 3, "latency_ms": 50, "speed_mbps": 12}
         flaky = {"health_successes": 2, "health_total": 3, "latency_ms": 50, "speed_mbps": 12}
         self.assertGreater(rank_score(fast), rank_score(flaky))
+
+    def test_health_urls_are_probed_concurrently(self):
+        barrier = threading.Barrier(len(HEALTH_URLS))
+
+        def fake_request(_proxy_port, _url, _timeout):
+            barrier.wait(timeout=2)
+            return 50.0, 0.0
+
+        def invoke(_xray_bin, _uri, request):
+            return request(1080)
+
+        with (
+            patch("pure_checker._with_xray", side_effect=invoke),
+            patch("pure_checker.https_get_via_xray", side_effect=fake_request),
+        ):
+            result = health_probe("unused", "vless://unused")
+
+        self.assertEqual(result["health_successes"], len(HEALTH_URLS))
 
     def test_filters_health_failures_and_returns_top_ranked(self):
         candidates = ["slow", "fast", "flaky", "dead"]
