@@ -35,7 +35,7 @@ jobs:
         env:
           TCP_TIMEOUT: "3.5"
           TCP_WORKERS: "64"
-          MAX_CONFIGS: "50000"
+          MAX_CONFIGS: "10000"
 
       - name: Commit updated subscription
         run: |
