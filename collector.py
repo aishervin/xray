@@ -24,8 +24,8 @@ from typing import Callable, Iterable
 ROOT = Path(__file__).resolve().parent
 SOURCE_FILE = ROOT / "source" / "source.txt"
 OUTPUT_FILE = ROOT / "vless.txt"
-REMARK = "T.me/aShervin"
-SUPPORTED_TRANSPORTS = {"ws", "websocket", "grpc", "xhttp", "http", "httpupgrade", "h2"}
+REMARK = "☬ T.me/aiShervin"
+SUPPORTED_TRANSPORTS = {"ws", "websocket", "grpc", "xhttp",}
 REALITY_TRANSPORTS = SUPPORTED_TRANSPORTS | {"tcp"}
 MAX_SOURCE_BYTES = 8 * 1024 * 1024
 VLESS_PATTERN = re.compile(r"vless://[^\s\"'<>`\\]+", re.IGNORECASE)
