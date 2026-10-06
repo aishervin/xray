@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parent
 SOURCE_FILE = ROOT / "source" / "source.txt"
 OUTPUT_FILE = ROOT / "vless.txt"
 REMARK = "☬ T.me/aiShervin"
-SUPPORTED_TRANSPORTS = {"ws", "websocket", "grpc", "xhttp",}
+SUPPORTED_TRANSPORTS = {"ws", "websocket", "grpc", "xhttp"}
 REALITY_TRANSPORTS = SUPPORTED_TRANSPORTS | {"tcp"}
 MAX_SOURCE_BYTES = 8 * 1024 * 1024
 VLESS_PATTERN = re.compile(r"vless://[^\s\"'<>`\\]+", re.IGNORECASE)
@@ -118,13 +118,55 @@ def _is_supported_transport(uri: str) -> bool:
     return (security == "reality" and transport in REALITY_TRANSPORTS) or transport in SUPPORTED_TRANSPORTS
 
 
+def _matches_initial_profile(uri: str) -> bool:
+    """Keep sample-like secure VLESS profiles before spending time on TCP probes."""
+    try:
+        parsed = urllib.parse.urlsplit(uri)
+        if parsed.port != 443:
+            return False
+    except ValueError:
+        return False
+
+    query = urllib.parse.parse_qs(parsed.query, keep_blank_values=True)
+
+    def first(*keys: str, default: str = "") -> str:
+        for key in keys:
+            values = query.get(key)
+            if values and values[0].strip():
+                return values[0].strip()
+        return default
+
+    security = first("security").lower()
+    transport = first("type", "transport", "network", default="tcp").lower()
+    if security not in {"tls", "reality"} or not first("sni", "serverName"):
+        return False
+    if security == "reality" and not first("pbk", "publicKey"):
+        return False
+    if security == "reality" and transport == "tcp" and first("flow") != "xtls-rprx-vision":
+        return False
+    if transport in {"ws", "websocket"} and not first("host"):
+        return False
+
+    insecure = first("allowInsecure", "insecure", "allowinsecure").lower()
+    if security == "tls" and insecure in {"1", "true", "yes", "on"}:
+        return False
+
+    encryption = first("encryption", default="none").lower()
+    return encryption == "none" or encryption.startswith("mlkem768x25519plus.")
+
+
 def extract_vless(text: str) -> list[str]:
     found: list[str] = []
     seen: set[str] = set()
     for payload in _decoded_payloads(text):
         for match in VLESS_PATTERN.findall(payload):
             uri = _clean_uri(match)
-            if _valid_vless_uri(uri) and _is_supported_transport(uri) and uri not in seen:
+            if (
+                _valid_vless_uri(uri)
+                and _is_supported_transport(uri)
+                and _matches_initial_profile(uri)
+                and uri not in seen
+            ):
                 found.append(uri)
                 seen.add(uri)
     return found
@@ -146,7 +188,7 @@ def identity_key(uri: str) -> tuple[object, ...]:
 
 def with_remark(uri: str) -> str:
     parsed = urllib.parse.urlsplit(uri)
-    return urllib.parse.urlunsplit(parsed._replace(fragment=REMARK))
+    return urllib.parse.urlunsplit(parsed._replace(fragment=urllib.parse.quote(REMARK, safe="")))
 
 
 def tcp_reachable(uri: str, timeout: float = 3.5) -> bool:

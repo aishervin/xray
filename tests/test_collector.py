@@ -16,27 +16,37 @@ class CollectorTests(unittest.TestCase):
     def test_extracts_supported_transports_and_reality(self):
         content = "\n".join(
             [
-                "vless://id1@example.com:443?type=ws&security=tls#old",
-                "vless://id2@example.com:443?type=grpc&security=tls",
-                "vless://id3@example.com:443?type=xhttp&security=none",
-                "vless://id4@example.com:443?type=http&security=tls",
-                "vless://id5@example.com:443?type=tcp&security=reality",
-                "vless://id6@example.com:443?type=tcp&security=tls",
+                "vless://id1@example.com:443?type=ws&security=tls&sni=ssl.example&host=edge.example#old",
+                "vless://id2@example.com:443?type=grpc&security=tls&sni=grpc.example&serviceName=svc",
+                "vless://id3@example.com:443?type=xhttp&security=none&sni=edge.example",
+                "vless://id4@example.com:443?type=http&security=tls&sni=edge.example",
+                "vless://id5@example.com:443?type=tcp&security=reality&pbk=key&flow=xtls-rprx-vision&sni=edge.example",
+                "vless://id6@example.com:443?type=tcp&security=tls&sni=edge.example",
+                "vless://id7@example.com:443?type=tcp&security=reality&pbk=key&sni=edge.example",
+                "vless://id8@example.com:443?type=xhttp&security=reality&pbk=key&sni=edge.example&mode=auto&encryption=mlkem768x25519plus.native.0rtt.key",
+                "vless://id9@example.com:80?type=ws&security=tls&sni=ssl.example&host=edge.example",
             ]
         )
         nodes = extract_vless(content)
-        self.assertEqual(len(nodes), 5)
-        self.assertTrue(any("security=reality" in node for node in nodes))
+        self.assertEqual(
+            nodes,
+            [
+                "vless://id1@example.com:443?type=ws&security=tls&sni=ssl.example&host=edge.example#old",
+                "vless://id2@example.com:443?type=grpc&security=tls&sni=grpc.example&serviceName=svc",
+                "vless://id5@example.com:443?type=tcp&security=reality&pbk=key&flow=xtls-rprx-vision&sni=edge.example",
+                "vless://id8@example.com:443?type=xhttp&security=reality&pbk=key&sni=edge.example&mode=auto&encryption=mlkem768x25519plus.native.0rtt.key",
+            ],
+        )
 
     def test_extracts_base64_subscription(self):
-        source = "vless://id@example.com:443?type=grpc&security=tls#source"
+        source = "vless://id@example.com:443?type=grpc&security=tls&sni=grpc.example#source"
         encoded = base64.b64encode(source.encode()).decode()
         self.assertEqual(extract_vless(encoded), [source])
 
     def test_extracts_individually_base64_encoded_lines(self):
         sources = [
-            "vless://one@example.com:443?type=ws&security=tls",
-            "vless://two@example.com:443?type=xhttp&security=tls",
+            "vless://one@example.com:443?type=ws&security=tls&sni=ssl.example&host=edge.example",
+            "vless://two@example.com:443?type=xhttp&security=tls&sni=edge.example",
         ]
         encoded = "\n".join(base64.b64encode(item.encode()).decode() for item in sources)
         self.assertEqual(extract_vless(encoded), sources)
@@ -48,7 +58,10 @@ class CollectorTests(unittest.TestCase):
 
     def test_replaces_remark_exactly(self):
         result = with_remark("vless://id@example.com:443?type=ws#old%20name")
-        self.assertEqual(result, "vless://id@example.com:443?type=ws#T.me/aShervin")
+        self.assertEqual(
+            result,
+            "vless://id@example.com:443?type=ws#%E2%98%AC%20T.me%2FaiShervin",
+        )
 
     def test_rejects_non_https_source(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -61,11 +74,11 @@ class CollectorTests(unittest.TestCase):
         contents = {
             "https://feed.example/one": "\n".join(
                 [
-                    "vless://one@example.com:443?type=ws&security=tls#name1",
-                    "vless://two@example.com:443?type=grpc&security=tls#name2",
+                    "vless://one@example.com:443?type=ws&security=tls&sni=ssl.example&host=edge.example#name1",
+                    "vless://two@example.com:443?type=grpc&security=tls&sni=grpc.example#name2",
                 ]
             ),
-            "https://feed.example/two": "vless://ONE@example.com:443?security=tls&type=ws#duplicate",
+            "https://feed.example/two": "vless://ONE@example.com:443?sni=ssl.example&host=edge.example&security=tls&type=ws#duplicate",
         }
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "vless.txt"
@@ -80,7 +93,13 @@ class CollectorTests(unittest.TestCase):
         self.assertEqual(stats["duplicates"], 1)
         self.assertEqual(stats["tcp_tested"], 2)
         self.assertEqual(stats["published"], 1)
-        self.assertEqual(lines, ["vless://one@example.com:443?type=ws&security=tls#T.me/aShervin"])
+        self.assertEqual(
+            lines,
+            [
+                "vless://one@example.com:443?type=ws&security=tls&sni=ssl.example&host=edge.example"
+                "#%E2%98%AC%20T.me%2FaiShervin"
+            ],
+        )
 
     def test_keeps_previous_output_when_every_source_fails(self):
         with tempfile.TemporaryDirectory() as directory:

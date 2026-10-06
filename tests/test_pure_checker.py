@@ -100,8 +100,8 @@ class PureCheckerTests(unittest.TestCase):
             self.assertEqual(
                 output.read_text(encoding="utf-8").splitlines(),
                 [
-                    "vless://one@example.com:443?type=tcp#T.me/aShervin",
-                    "vless://two@example.com:443?type=tcp#T.me/aShervin",
+                    "vless://one@example.com:443?type=tcp#%E2%98%AC%20T.me%2FaiShervin",
+                    "vless://two@example.com:443?type=tcp#%E2%98%AC%20T.me%2FaiShervin",
                 ],
             )
 
